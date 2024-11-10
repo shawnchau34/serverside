@@ -3,8 +3,22 @@ const cors = require("cors");
 const app = express();
 app.use(cors());
 app.use(express.static("public"));
+const multer = require("multer");
 
-const housePlans = [
+
+const storage = multer.diskStorage({ //from inclass-example
+    destination: (req, file, cb) => {
+        cb(null, "./public/images/");
+    },
+    filename: (req, file, cb) => {
+        cb(null, file.originalname);
+    },
+});
+
+const upload = multer({ storage: storage });
+
+
+const modalCards = [
     {
         "_id": 1,
         "title": "Heritage Line Ylang Cruise",
@@ -118,8 +132,11 @@ app.get("/",(req,res)=>{
     res.sendFile(__dirname + "/index.html");
 });
 
+app.post("/api/upload", upload.single("modalImage"),(req, res)=>{
+    res.send({ message: "Upload successful", file: req.file});
+});
 app.get("/api/house_plans", (req,res)=>{
-    res.json(housePlans);
+    res.json(Images);
 });
 
 
