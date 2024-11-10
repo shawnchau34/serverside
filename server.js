@@ -136,7 +136,7 @@ app.post("/api/upload", upload.single("modalImage"),(req, res)=>{
     res.send({ message: "Upload successful", file: req.file});
 });
 app.get("/api/house_plans", (req,res)=>{
-    res.json(Images);
+    res.json(modalCards);
 });
 
 
