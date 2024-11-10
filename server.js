@@ -61,7 +61,8 @@ const modalCards = [
         "img_name": "images/hcm.jpg",
         "description": "o Chi Minh City, formerly known as Saigon, is a bustling city with rich history and vibrant culture.",
         "link": "https://www.tripadvisor.com/Tourism-g293925-Ho_Chi_Minh_City-Vacations.html",
-        "attractions": ["Ben Thanh Market", "Notre-Dame Cathedral Basilica", "War Remnants Museum"]
+        "attractions": ["Ben Thanh Market", "Notre-Dame Cathedral Basilica", "War Remnants Museum"],
+        "historical_significance": "Following the partition of French Indochina, it became the capital of South Vietnam until it was captured by North Vietnam, who renamed the city after their former leader Hồ Chí Minh"
     },
     {
         "_id": 2,
@@ -128,18 +129,19 @@ const modalCards = [
     }
 ];
 
-app.get("/",(req,res)=>{
-    res.sendFile(__dirname + "/index.html");
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-app.post("/api/upload", upload.single("modalImage"),(req, res)=>{
-    res.send({ message: "Upload successful", file: req.file});
+app.post('/api/upload', upload.single('modalImage'), (req, res) => {
+    res.send({ message: 'Upload successful', file: req.file });
 });
-app.get("/api/house_plans", (req,res)=>{
+
+app.get('/api/house_plans', (req, res) => {
     res.json(modalCards);
 });
 
-
-app.listen(3001, () => {
-    console.log("Listening....");
+const PORT = process.env.PORT || 3001;
+    app.listen(PORT, () => {
+        console.log(`Server is running on port ${PORT}`);
 });
