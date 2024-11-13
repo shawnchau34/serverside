@@ -1,12 +1,17 @@
-const express = require("express");
+press = require("express");
 const cors = require("cors");
-const app = express();
-app.use(cors());
-app.use(express.static("public"));
 const multer = require("multer");
+const Joi = require("joi"); 
+const path = require("path"); 
+const app = express();
 
 
-const storage = multer.diskStorage({ //from inclass-example
+app.use(cors());
+app.use(express.json()); 
+app.use(express.urlencoded({ extended: true })); 
+app.use(express.static("public"));
+
+const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, "./public/images/");
     },
@@ -14,7 +19,6 @@ const storage = multer.diskStorage({ //from inclass-example
         cb(null, file.originalname);
     },
 });
-
 const upload = multer({ storage: storage });
 
 
@@ -129,19 +133,60 @@ const modalCards = [
     }
 ];
 
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+const validateModalCard = (data) => {
+    const schema = Joi.object({
+        title: Joi.string().min(3).required(),
+        description: Joi.string().min(5).required(),
+        img_name: Joi.string().optional(), // This will be added if file is uploaded
+        city: Joi.string().optional(), // Add other fields as required
+        difficulty_level: Joi.string().optional(),
+        historical_significance: Joi.string().optional(),
+        ingredients: Joi.array().items(Joi.string()).optional(),
+        region: Joi.string().optional()
+    });
+    return schema.validate(data);
+};
+
+// Routes
+app.get("/", (req, res) => {
+    res.sendFile(path.join(__dirname, "index.html"));
 });
 
-app.post('/api/upload', upload.single('modalImage'), (req, res) => {
-    res.send({ message: 'Upload successful', file: req.file });
-});
-
-app.get('/api/house_plans', (req, res) => {
+app.get("/api/house_plans", (req, res) => {
     res.json(modalCards);
 });
 
+app.post('/api/house_plans', upload.single("img"), (req, res) => {
+    console.log('Body received:', req.body);
+    console.log('File received:', req.file);
+
+    const result = validateModalCard(req.body);
+    if (result.error) {
+        console.error('Validation error:', result.error.details[0].message);
+        return res.status(400).send(result.error.details[0].message);
+    }
+
+    // Create new item
+    const newItem = {
+        _id: modalCards.length + 1, // Simple ID generation; consider more robust solutions for production
+        title: req.body.title,
+        description: req.body.description,
+        img_name: req.file ? "images/" + req.file.filename : req.body.img_name || "", // Use uploaded file or default value
+        city: req.body.city || "",
+        difficulty_level: req.body.difficulty_level || "",
+        historical_significance: req.body.historical_significance || "",
+        ingredients: req.body.ingredients ? req.body.ingredients.split(",") : [],
+        region: req.body.region || ""
+    };
+
+    // Add the new item to the array
+    modalCards.push(newItem);
+    console.log("Added new item:", newItem);
+    res.status(200).send(newItem);
+});
+
+// Start the server
 const PORT = process.env.PORT || 3001;
-    app.listen(PORT, () => {
-        console.log(`Server is running on port ${PORT}`);
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
 });
