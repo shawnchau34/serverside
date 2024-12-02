@@ -60,7 +60,7 @@ const modalCards = [
         "difficulty_level": "Hard"
     },
     {
-        "_id": 1,
+        "_id": 5,
         "title": "Ho Chi Minh City",
         "img_name": "images/hcm.jpg",
         "description": "o Chi Minh City, formerly known as Saigon, is a bustling city with rich history and vibrant culture.",
@@ -69,7 +69,7 @@ const modalCards = [
         "historical_significance": "Following the partition of French Indochina, it became the capital of South Vietnam until it was captured by North Vietnam, who renamed the city after their former leader Hồ Chí Minh"
     },
     {
-        "_id": 2,
+        "_id": 6,
         "title": "Saigon",
         "img_name": "images/saigon.jpeg",
         "description": "Explore the historic streets of Saigon, known for its French colonial architecture and vibrant culture.",
@@ -78,7 +78,7 @@ const modalCards = [
         "historical_significance": "Famous for its role as the capital of South Vietnam during the Vietnam War."
     },
     {
-        "_id": 3,
+        "_id": 7,
         "title": "Hanoi",
         "img_name": "images/temple.jpg",
         "description": "The capital of Vietnam, Hanoi, is known for its centuries-old architecture and rich culture influenced by Southeast Asia.",
@@ -87,7 +87,7 @@ const modalCards = [
         "historical_significance": "Served as the capital of Vietnam since the 11th century, rich in cultural heritage."
     },
     {
-        "_id": 4,
+        "_id": 8,
         "title": "Hạ Long Bay",
         "img_name": "images/discoverbay.jpg",
         "description": "Hạ Long Bay is famous for its emerald waters and thousands of towering limestone islands topped with rainforests.",
@@ -96,7 +96,7 @@ const modalCards = [
         "historical_significance": "A UNESCO World Heritage site, it has great importance for its natural beauty and unique geology."
     },
     {
-        "_id": 1,
+        "_id": 9,
         "title": "Bánh mì",
         "img_name": "images/banhmi.jpg",
         "description": "A popular street food, Bánh mì is a Vietnamese sandwich filled with a variety of meats, vegetables, and herbs.",
@@ -105,7 +105,7 @@ const modalCards = [
         "region": "Southern Vietnam"
     },
     {
-        "_id": 2,
+        "_id": 10,
         "title": "Phở",
         "img_name": "images/pho.jpg",
         "description": "Phở is a Vietnamese soup consisting of broth, rice noodles, herbs, and meat, usually beef or chicken.",
@@ -114,7 +114,7 @@ const modalCards = [
         "region": "Northern Vietnam"
     },
     {
-        "_id": 3,
+        "_id": 11,
         "title": "Bún bò Huế",
         "img_name": "images/bbh.jpg",
         "description": "Bún bò Huế is a Vietnamese soup with a lemongrass-flavored broth, beef, and noodles.",
@@ -123,7 +123,7 @@ const modalCards = [
         "region": "Central Vietnam"
     },
     {
-        "_id": 4,
+        "_id": 12,
         "title": "Bún thịt nướng",
         "img_name": "images/btn.jpg",
         "description": "Bún thịt nướng is a Vietnamese dish consisting of grilled pork and vermicelli noodles, often served with fresh vegetables.",
@@ -184,6 +184,26 @@ app.post('/api/house_plans', upload.single("img"), (req, res) => {
     console.log("Added new item:", newItem);
     res.status(200).send(newItem);
 });
+
+app.delete("/api/house_plans/:id", (req, res) => {
+    const id = parseInt(req.params.id); // Ensure the ID is an integer
+    console.log("Request ID:", id);
+
+    const card = modalCards.find(modalCard => modalCard._id === id);
+    if (!card) {
+        console.error("Item not found for ID:", id);
+        return res.status(404).send("The item with the provided ID was not found.");
+    }
+
+    const index = modalCards.indexOf(card);
+    modalCards.splice(index, 1);
+
+    console.log("Deleted item:", card);
+    res.status(200).send(card);
+});
+
+
+
 
 // Start the server
 const PORT = process.env.PORT || 3001;
