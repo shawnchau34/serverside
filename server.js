@@ -137,13 +137,20 @@ const validateModalCard = (data) => {
     const schema = Joi.object({
         title: Joi.string().min(3).required(),
         description: Joi.string().min(5).required(),
-        img_name: Joi.string().optional(), // This will be added if file is uploaded
-        city: Joi.string().optional(), // Add other fields as required
+        img_name: Joi.string().optional(),
+        link: Joi.string().uri().optional(),
+        city: Joi.string().optional(),
+        region: Joi.string().optional(),
         difficulty_level: Joi.string().optional(),
         historical_significance: Joi.string().optional(),
-        ingredients: Joi.array().items(Joi.string()).optional(),
-        region: Joi.string().optional(),
-        attractions: Joi.array().items(Joi.string()).optional()
+        ingredients: Joi.alternatives().try(
+            Joi.array().items(Joi.string()),
+            Joi.string() // Handles JSON string input
+        ).optional(),
+        attractions: Joi.alternatives().try(
+            Joi.array().items(Joi.string()),
+            Joi.string() // Handles JSON string input
+        ).optional(),
     });
     return schema.validate(data);
 };
@@ -188,6 +195,7 @@ app.post('/api/house_plans', upload.single("img"), (req, res) => {
 
 app.put("/api/house_plans/:id", upload.single("img"), (req, res) => {
     const id = parseInt(req.params.id);
+    const type = req.body.type;
     console.log("Received PUT request for ID:", id);
 
     const card = modalCards.find((modalCard) => modalCard._id === id);
@@ -210,6 +218,7 @@ app.put("/api/house_plans/:id", upload.single("img"), (req, res) => {
     card.region = req.body.region || card.region;
     card.historical_significance = req.body.historical_significance || card.historical_significance;
     card.difficulty_level = req.body.difficulty_level || card.difficulty_level;
+    card.link = req.body.link || card.link;
 
     if (req.body.ingredients) {
         card.ingredients = Array.isArray(req.body.ingredients)
@@ -230,8 +239,6 @@ app.put("/api/house_plans/:id", upload.single("img"), (req, res) => {
     console.log("Updated card:", card);
     res.status(200).send(card);
 });
-
-
 
 
 app.delete("/api/house_plans/:id", (req, res) => {
