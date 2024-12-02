@@ -142,7 +142,8 @@ const validateModalCard = (data) => {
         difficulty_level: Joi.string().optional(),
         historical_significance: Joi.string().optional(),
         ingredients: Joi.array().items(Joi.string()).optional(),
-        region: Joi.string().optional()
+        region: Joi.string().optional(),
+        attractions: Joi.array().items(Joi.string()).optional()
     });
     return schema.validate(data);
 };
@@ -185,6 +186,54 @@ app.post('/api/house_plans', upload.single("img"), (req, res) => {
     res.status(200).send(newItem);
 });
 
+app.put("/api/house_plans/:id", upload.single("img"), (req, res) => {
+    const id = parseInt(req.params.id);
+    console.log("Received PUT request for ID:", id);
+
+    const card = modalCards.find((modalCard) => modalCard._id === id);
+    if (!card) {
+        console.error("Card not found for ID:", id);
+        return res.status(404).json({ error: "Card not found" });
+    }
+
+    // Validate the incoming data
+    const result = validateModalCard(req.body);
+    if (result.error) {
+        console.error("Validation error:", result.error.details[0].message);
+        return res.status(400).send(result.error.details[0].message);
+    }
+
+    // Update fields dynamically
+    card.title = req.body.title || card.title;
+    card.description = req.body.description || card.description;
+    card.city = req.body.city || card.city;
+    card.region = req.body.region || card.region;
+    card.historical_significance = req.body.historical_significance || card.historical_significance;
+    card.difficulty_level = req.body.difficulty_level || card.difficulty_level;
+
+    if (req.body.ingredients) {
+        card.ingredients = Array.isArray(req.body.ingredients)
+            ? req.body.ingredients
+            : JSON.parse(req.body.ingredients);
+    }
+
+    if (req.body.attractions) {
+        card.attractions = Array.isArray(req.body.attractions)
+            ? req.body.attractions
+            : JSON.parse(req.body.attractions);
+    }
+
+    if (req.file) {
+        card.img_name = `images/${req.file.filename}`;
+    }
+
+    console.log("Updated card:", card);
+    res.status(200).send(card);
+});
+
+
+
+
 app.delete("/api/house_plans/:id", (req, res) => {
     const id = parseInt(req.params.id); // Ensure the ID is an integer
     console.log("Request ID:", id);
@@ -201,7 +250,6 @@ app.delete("/api/house_plans/:id", (req, res) => {
     console.log("Deleted item:", card);
     res.status(200).send(card);
 });
-
 
 
 
