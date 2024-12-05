@@ -4,6 +4,7 @@ const multer = require("multer");
 const Joi = require("joi"); 
 const path = require("path"); 
 const app = express();
+const mongoose = require("mongoose");
 
 
 app.use(cors());
@@ -21,243 +22,140 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
+mongoose
+    .connect("mongodb+srv://SwSoA4F7DHUzPcVk:QDOpJxsDNbFn52NF@cluster0.csbjj.mongodb.net/DiscoverVietnam?retryWrites=true&w=majority&appName=Cluster0")
+    .then(() => {
+        console.log("connected to mongodb");
+    })
+    .catch((error) => {
+        console.log("couldn't connect to mongodb", error);
+});
 
-const modalCards = [
-    {
-        "_id": 1,
-        "title": "Heritage Line Ylang Cruise",
-        "img_name": "images/cruise.jpg",
-        "description": "Discover the stunning waters and limestone karsts of Ha Long Bay aboard the luxurious Heritage Ylang Cruise.",
-        "link": "https://www.booking.com/hotel/vn/heritage-line-ylang-cruise.en.html",
-        "city": "Ha Long Bay",
-        "difficulty_level": "Easy"
-    },
-    {
-        "_id": 2,
-        "title": "The Marble Mountains",
-        "img_name": "images/mm.jpg",
-        "description": "A group of five limestone hills located in Da Nang, known for their beautiful caves and Buddhist sanctuaries.",
-        "link": "https://www.tripadvisor.com/Attraction_Review-g298085-d454980-Reviews-The_Marble_Mountains-Da_Nang.html",
-        "city": "Da Nang",
-        "difficulty_level": "Moderate"
-    },
-    {
-        "_id": 3,
-        "title": "The Old Quarter",
-        "img_name": "images/quarter.jpg",
-        "description": "Explore the bustling streets of Hanoi's Old Quarter, filled with history, traditional shops, and vibrant street life.",
-        "link": "https://vietnam.travel/things-to-do/explore-old-quarter-your-way",
-        "city": "Hanoi",
-        "difficulty_level": "Easy"
-    },
-    {
-        "_id": 4,
-        "title": "Cat Ba Island",
-        "img_name": "images/island.jpg",
-        "description": "Cat Ba Island is the largest island in the Ha Long Bay archipelago, known for its rugged limestone hills and diverse wildlife.",
-        "link": "https://www.tripadvisor.com/Attraction_Review-g737051-d386683-Reviews-Cat_Ba_Island-Cat_Ba_Hai_Phong.html",
-        "city": "Cat Ba",
-        "difficulty_level": "Hard"
-    },
-    {
-        "_id": 5,
-        "title": "Ho Chi Minh City",
-        "img_name": "images/hcm.jpg",
-        "description": "o Chi Minh City, formerly known as Saigon, is a bustling city with rich history and vibrant culture.",
-        "link": "https://www.tripadvisor.com/Tourism-g293925-Ho_Chi_Minh_City-Vacations.html",
-        "attractions": ["Ben Thanh Market", "Notre-Dame Cathedral Basilica", "War Remnants Museum"],
-        "historical_significance": "Following the partition of French Indochina, it became the capital of South Vietnam until it was captured by North Vietnam, who renamed the city after their former leader Hồ Chí Minh"
-    },
-    {
-        "_id": 6,
-        "title": "Saigon",
-        "img_name": "images/saigon.jpeg",
-        "description": "Explore the historic streets of Saigon, known for its French colonial architecture and vibrant culture.",
-        "link": "https://vietnam.travel/places-to-go/southern-vietnam/ho-chi-minh-city",
-        "attractions": ["Saigon Opera House", "Reunification Palace", "Saigon Central Post Office"],
-        "historical_significance": "Famous for its role as the capital of South Vietnam during the Vietnam War."
-    },
-    {
-        "_id": 7,
-        "title": "Hanoi",
-        "img_name": "images/temple.jpg",
-        "description": "The capital of Vietnam, Hanoi, is known for its centuries-old architecture and rich culture influenced by Southeast Asia.",
-        "link": "https://www.tripadvisor.com/Tourism-g293924-Hanoi-Vacations.html",
-        "attractions": ["Hoan Kiem Lake", "Old Quarter", "Temple of Literature"],
-        "historical_significance": "Served as the capital of Vietnam since the 11th century, rich in cultural heritage."
-    },
-    {
-        "_id": 8,
-        "title": "Hạ Long Bay",
-        "img_name": "images/discoverbay.jpg",
-        "description": "Hạ Long Bay is famous for its emerald waters and thousands of towering limestone islands topped with rainforests.",
-        "link": "https://whc.unesco.org/en/list/672/",
-        "attractions": ["Bai Tu Long Bay", "Cat Ba Island", "Sung Sot Cave"],
-        "historical_significance": "A UNESCO World Heritage site, it has great importance for its natural beauty and unique geology."
-    },
-    {
-        "_id": 9,
-        "title": "Bánh mì",
-        "img_name": "images/banhmi.jpg",
-        "description": "A popular street food, Bánh mì is a Vietnamese sandwich filled with a variety of meats, vegetables, and herbs.",
-        "link": "https://vietnamnomad.com/eat-drink/banh-mi/",
-        "ingredients": ["Baguette", "Pork", "Pickled Vegetables", "Cilantro", "Chili Sauce"],
-        "region": "Southern Vietnam"
-    },
-    {
-        "_id": 10,
-        "title": "Phở",
-        "img_name": "images/pho.jpg",
-        "description": "Phở is a Vietnamese soup consisting of broth, rice noodles, herbs, and meat, usually beef or chicken.",
-        "link": "https://vietnamnomad.com/eat-drink/pho/",
-        "ingredients": ["Beef Broth", "Rice Noodles", "Beef Slices", "Bean Sprouts", "Basil"],
-        "region": "Northern Vietnam"
-    },
-    {
-        "_id": 11,
-        "title": "Bún bò Huế",
-        "img_name": "images/bbh.jpg",
-        "description": "Bún bò Huế is a Vietnamese soup with a lemongrass-flavored broth, beef, and noodles.",
-        "link": "https://vietnamnomad.com/eat-drink/bun-bo-hue/",
-        "ingredients": ["Lemongrass Broth", "Beef Shank", "Rice Vermicelli", "Shrimp Paste", "Chili Oil"],
-        "region": "Central Vietnam"
-    },
-    {
-        "_id": 12,
-        "title": "Bún thịt nướng",
-        "img_name": "images/btn.jpg",
-        "description": "Bún thịt nướng is a Vietnamese dish consisting of grilled pork and vermicelli noodles, often served with fresh vegetables.",
-        "link": "https://www.hungryhuy.com/bun-thit-nuong-recipe-vietnamese-grilled-bbq-pork-with-rice-vermicelli-vegetables/",
-        "ingredients": ["Grilled Pork", "Rice Vermicelli", "Fish Sauce", "Pickled Carrots", "Cucumber"],
-        "region": "Southern Vietnam"
-    }
-];
+// MongoDB Schema and Model
+const ItemSchema = new mongoose.Schema({
+    title: { type: String, required: true },
+    description: { type: String, required: true },
+    img_name: { type: String },
+    city: { type: String },
+    region: { type: String },
+    difficulty_level: { type: String },
+    historical_significance: { type: String },
+    attractions: { type: [String] },
+    ingredients: { type: [String] },
+    link: { type: String }, // Add support for link fields
+});
 
-const validateModalCard = (data) => {
+const Item = mongoose.model("Item", ItemSchema);
+
+// Joi Validation Schema
+const validateItem = (data) => {
     const schema = Joi.object({
         title: Joi.string().min(3).required(),
         description: Joi.string().min(5).required(),
-        img_name: Joi.string().optional(),
-        link: Joi.string().uri().optional(),
         city: Joi.string().optional(),
+        img_name: Joi.string().optional(),
         region: Joi.string().optional(),
         difficulty_level: Joi.string().optional(),
         historical_significance: Joi.string().optional(),
-        ingredients: Joi.alternatives().try(
-            Joi.array().items(Joi.string()),
-            Joi.string() // Handles JSON string input
-        ).optional(),
         attractions: Joi.alternatives().try(
             Joi.array().items(Joi.string()),
-            Joi.string() // Handles JSON string input
+            Joi.string()
         ).optional(),
+        ingredients: Joi.alternatives().try(
+            Joi.array().items(Joi.string()),
+            Joi.string()
+        ).optional(),
+        link: Joi.string().uri().optional(), // Validate link as an optional URI
     });
     return schema.validate(data);
 };
 
-// Routes
-app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "index.html"));
-});
+// API Endpoints
 
-app.get("/api/house_plans", (req, res) => {
-    res.json(modalCards);
-});
-
-app.post('/api/house_plans', upload.single("img"), (req, res) => {
-    console.log('Body received:', req.body);
-    console.log('File received:', req.file);
-
-    const result = validateModalCard(req.body);
-    if (result.error) {
-        console.error('Validation error:', result.error.details[0].message);
-        return res.status(400).send(result.error.details[0].message);
+app.get("/api/house_plans", async (req, res) => {
+    try {
+        const items = await Item.find();
+        res.status(200).send(items);
+    } catch (err) {
+        res.status(500).send("Error fetching items.");
     }
+});
 
-    // Create new item
-    const newItem = {
-        _id: modalCards.length + 1, // Simple ID generation; consider more robust solutions for production
-        title: req.body.title,
-        description: req.body.description,
-        img_name: req.file ? "images/" + req.file.filename : req.body.img_name || "", // Use uploaded file or default value
-        city: req.body.city || "",
-        difficulty_level: req.body.difficulty_level || "",
-        historical_significance: req.body.historical_significance || "",
-        ingredients: req.body.ingredients ? req.body.ingredients.split(",") : [],
-        region: req.body.region || ""
+app.get("/api/house_plans/:id", async (req, res) => {
+    try {
+        const item = await Item.findById(req.params.id);
+        if (!item) return res.status(404).send("Item not found.");
+        res.status(200).send(item);
+    } catch (err) {
+        res.status(500).send("Error fetching the item.");
+    }
+});
+
+// Add New Item
+app.post("/api/house_plans", upload.single("img"), async (req, res) => {
+    const { error } = validateItem(req.body);
+    if (error) return res.status(400).send(error.details[0].message);
+
+    const item = new Item({
+        ...req.body,
+        img_name: req.file ? `/images/${req.file.filename}` : undefined,
+        attractions: req.body.attractions
+            ? JSON.parse(req.body.attractions)
+            : undefined,
+        ingredients: req.body.ingredients
+            ? JSON.parse(req.body.ingredients)
+            : undefined,
+        link: req.body.link, // Save the provided link
+    });
+
+    try {
+        const savedItem = await item.save();
+        res.status(201).send(savedItem);
+    } catch (err) {
+        res.status(500).send("Error saving the item.");
+    }
+});
+
+// Edit an Item
+app.put("/api/house_plans/:id", upload.single("img"), async (req, res) => {
+    const { error } = validateItem(req.body);
+    if (error) return res.status(400).send(error.details[0].message);
+
+    const existingItem = await Item.findById(req.params.id);
+
+    const updateData = {
+        ...req.body,
+        img_name: req.file ? `/images/${req.file.filename}` : existingItem.img_name,
+        attractions: req.body.attractions
+            ? JSON.parse(req.body.attractions)
+            : undefined,
+        ingredients: req.body.ingredients
+            ? JSON.parse(req.body.ingredients)
+            : undefined,
+        link: req.body.link || undefined, // Update link if provided
     };
 
-    // Add the new item to the array
-    modalCards.push(newItem);
-    console.log("Added new item:", newItem);
-    res.status(200).send(newItem);
+    try {
+        const updatedItem = await Item.findByIdAndUpdate(req.params.id, updateData, {
+        new: true,
+    });
+    if (!updatedItem) return res.status(404).send("Item not found.");
+        res.send(updatedItem);
+    } catch (err) {
+        res.status(500).send("Error updating the item.");
+    }
 });
 
-app.put("/api/house_plans/:id", upload.single("img"), (req, res) => {
-    const id = parseInt(req.params.id);
-    const type = req.body.type;
-    console.log("Received PUT request for ID:", id);
-
-    const card = modalCards.find((modalCard) => modalCard._id === id);
-    if (!card) {
-        console.error("Card not found for ID:", id);
-        return res.status(404).json({ error: "Card not found" });
+// Delete an Item
+app.delete("/api/house_plans/:id", async (req, res) => {
+    try {
+        const deletedItem = await Item.findByIdAndDelete(req.params.id);
+        if (!deletedItem) return res.status(404).send("Item not found.");
+        res.send(deletedItem);
+    } catch (err) {
+        res.status(500).send("Error deleting the item.");
     }
-
-    // Validate the incoming data
-    const result = validateModalCard(req.body);
-    if (result.error) {
-        console.error("Validation error:", result.error.details[0].message);
-        return res.status(400).send(result.error.details[0].message);
-    }
-
-    // Update fields dynamically
-    card.title = req.body.title || card.title;
-    card.description = req.body.description || card.description;
-    card.city = req.body.city || card.city;
-    card.region = req.body.region || card.region;
-    card.historical_significance = req.body.historical_significance || card.historical_significance;
-    card.difficulty_level = req.body.difficulty_level || card.difficulty_level;
-    card.link = req.body.link || card.link;
-
-    if (req.body.ingredients) {
-        card.ingredients = Array.isArray(req.body.ingredients)
-            ? req.body.ingredients
-            : JSON.parse(req.body.ingredients);
-    }
-
-    if (req.body.attractions) {
-        card.attractions = Array.isArray(req.body.attractions)
-            ? req.body.attractions
-            : JSON.parse(req.body.attractions);
-    }
-
-    if (req.file) {
-        card.img_name = `images/${req.file.filename}`;
-    }
-
-    console.log("Updated card:", card);
-    res.status(200).send(card);
 });
-
-
-app.delete("/api/house_plans/:id", (req, res) => {
-    const id = parseInt(req.params.id); // Ensure the ID is an integer
-    console.log("Request ID:", id);
-
-    const card = modalCards.find(modalCard => modalCard._id === id);
-    if (!card) {
-        console.error("Item not found for ID:", id);
-        return res.status(404).send("The item with the provided ID was not found.");
-    }
-
-    const index = modalCards.indexOf(card);
-    modalCards.splice(index, 1);
-
-    console.log("Deleted item:", card);
-    res.status(200).send(card);
-});
-
 
 
 // Start the server
